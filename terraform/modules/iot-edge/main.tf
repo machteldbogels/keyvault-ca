@@ -41,6 +41,13 @@ resource "azurerm_virtual_network" "iot_edge" {
   # }
 }
 
+resource "azurerm_subnet" "iotedge_subnet" {
+  name                 = "${local.dns_label_prefix}-iotedge-subnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.iot_edge.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
 resource "azurerm_network_interface" "iot_edge" {
   name                = "${local.dns_label_prefix}-nic"
   location            = var.location
@@ -50,15 +57,8 @@ resource "azurerm_network_interface" "iot_edge" {
     name                          = "${local.dns_label_prefix}-ipconfig"
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.iot_edge.id
-    subnet_id                     = azurerm_virtual_network.iot_edge.subnet.*.id[0]
+    subnet_id                     = azurerm_subnet.iotedge_subnet.id
   }
-}
-
-resource "azurerm_subnet" "iotedge_subnet" {
-  name                 = "${local.dns_label_prefix}-iotedge-subnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.iot_edge.name
-  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_subnet_network_security_group_association" "iotedge_vnet_assoc" {

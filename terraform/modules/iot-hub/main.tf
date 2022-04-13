@@ -2,7 +2,7 @@ resource "azurerm_iothub" "iothub" {
   name                          = "${var.resource_prefix}-iot-hub"
   resource_group_name           = var.resource_group_name
   location                      = var.location
-  public_network_access_enabled = true
+  public_network_access_enabled = false
 
   sku {
     name     = "S1"
@@ -49,7 +49,7 @@ resource "azurerm_iothub_dps" "iot_dps" {
   name                          = "${var.resource_prefix}-iotdps"
   resource_group_name           = var.resource_group_name
   location                      = var.location
-  public_network_access_enabled = true
+  public_network_access_enabled = false
 
   sku {
     name     = "S1"
@@ -85,7 +85,7 @@ resource "azurerm_subnet" "iot_subnet" {
   name                 = "${var.resource_prefix}-iot-subnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = var.vnet_name
-  address_prefixes     = ["10.0.1.0/24"]
+  address_prefixes     = ["10.0.3.0/24"]
 
   enforce_private_link_endpoint_network_policies = true
 }
@@ -121,10 +121,10 @@ resource "azurerm_private_endpoint" "dps_private_endpoint" {
 
 # the Bastion setup below is to access resources inside the previously defined VNet
 resource "azurerm_subnet" "bastion_subnet" {
-  name                 = "${var.resource_prefix}-bastion-subnet"
+  name                 = "AzureBastionSubnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = var.vnet_name
-  address_prefixes     = ["10.0.1.0/24"]
+  address_prefixes     = ["10.0.2.0/26"]
 }
 
 resource "azurerm_public_ip" "public_ip" {
@@ -141,7 +141,7 @@ resource "azurerm_bastion_host" "bastion" {
   resource_group_name = var.resource_group_name
 
   ip_configuration {
-    name                 = "configuration"
+    name                 = "AzureBastionSubnet-Configuration"
     subnet_id            = azurerm_subnet.bastion_subnet.id
     public_ip_address_id = azurerm_public_ip.public_ip.id
   }
