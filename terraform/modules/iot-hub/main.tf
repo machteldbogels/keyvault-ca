@@ -80,3 +80,69 @@ resource "null_resource" "dps_rootca_enroll" {
     command = "az iot dps enrollment-group create -g ${var.resource_group_name} --dps-name ${azurerm_iothub_dps.iot_dps.name}  --enrollment-id ${var.resource_prefix}-enrollmentgroup --edge-enabled true --ca-name ${var.issuing_ca}"
   }
 }
+
+resource "azurerm_subnet" "iot_subnet" {
+  name                 = "${var.resource_prefix}-iot-subnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = var.vnet_name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_private_endpoint" "iothub_private_endpoint" {
+  name                = "${var.resource_prefix}-iothub-private-endpoint"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = azurerm_subnet.iot_subnet.id
+
+  private_service_connection {
+    name                           = "iothub_connection"
+    private_connection_resource_id = azurerm_iothub.iothub.id
+    is_manual_connection           = false
+    subresource_names              = ["iotHub"]
+  }
+}
+
+resource "azurerm_private_endpoint" "dps_private_endpoint" {
+  name                = "${var.resource_prefix}-dps-private-endpoint"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = azurerm_subnet.iot_subnet.id
+
+  private_service_connection {
+    name                           = "dps_connection"
+    private_connection_resource_id = azurerm_iothub_dps.iot_dps.id
+    is_manual_connection           = false
+    subresource_names              = ["iotDps"]
+  }
+}
+
+
+# the Bastion setup below is to access resources inside the previously defined VNet
+resource "azurerm_subnet" "bastion_subnet" {
+  name                 = "${var.resource_prefix}-bastion-subnet"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = var.vnet_name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "public_ip" {
+  name                = "${var.resource_prefix}-bastion-ip"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_bastion_host" "bastion" {
+  name                = "${var.resource_prefix}-bastion-host"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.bastion_subnet.id
+    public_ip_address_id = azurerm_public_ip.public_ip.id
+  }
+}
