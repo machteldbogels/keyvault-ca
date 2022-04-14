@@ -41,3 +41,19 @@ variable "est_user" {
 variable "est_password" {
   type = string
 }
+
+variable "iot_dps_name" {
+  type = string
+}
+
+variable "acr_admin_password" {
+  type = string
+}
+
+variable "acr_admin_username" {
+  type = string
+}
+
+variable "acr_name" {
+  type = string
+}

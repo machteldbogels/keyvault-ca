@@ -5,3 +5,7 @@ output "edge_device_name" {
 output "vnet_name" {
   value = azurerm_virtual_network.iot_edge.name
 }
+
+output "vnet_id" {
+  value = azurerm_virtual_network.iot_edge.id
+}

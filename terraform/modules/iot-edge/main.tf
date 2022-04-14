@@ -18,13 +18,25 @@ resource "azurerm_network_security_group" "iot_edge" {
   security_rule {
     name                       = "default-allow-22"
     priority                   = 1000
-    access                     = "Allow"
+    access                     = "Deny"
     direction                  = "Inbound"
     protocol                   = "Tcp"
     destination_port_range     = "22"
     source_address_prefix      = "*"
     source_port_range          = "*"
     destination_address_prefix = "*"
+  }
+
+    security_rule {
+    name                       = "default-deny-outbound-internet"
+    priority                   = 1000
+    access                     = "Deny"
+    direction                  = "OutBound"
+    protocol                   = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    source_port_range          = "*"
+    destination_address_prefix = "Internet"
   }
 }
 
@@ -90,6 +102,10 @@ resource "azurerm_linux_virtual_machine" "iot_edge" {
     "EST_PASSWORD"    = var.est_password
     "VM_USER_NAME"    = var.vm_user_name
     "RESOURCE_PREFIX" = var.resource_prefix
+    "DPS_NAME"        = var.iot_dps_name
+    "USERNAME"        = var.acr_admin_username
+    "PASSWORD"        = var.acr_admin_password
+    "ACR_NAME"        = var.acr_name
   }))
 
   source_image_reference {
