@@ -38,19 +38,6 @@ resource "azurerm_network_security_group" "iot_edge" {
     source_port_range          = "*"
     destination_address_prefix = "*"
   }
-
-  security_rule {
-    name                       = "Default-Deny-Outbound-Internet"
-    priority                   = 1000
-    access                     = "Deny"
-    direction                  = "OutBound"
-    protocol                   = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "*"
-    source_port_range          = "*"
-    destination_address_prefix = "Internet"
-  }
-
 }
 
 resource "azurerm_virtual_network" "iot_edge" {

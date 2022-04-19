@@ -39,7 +39,7 @@ resource "azurerm_iothub_dps" "iot_dps" {
   name                          = "${var.resource_prefix}-iotdps"
   resource_group_name           = var.resource_group_name
   location                      = var.location
-  public_network_access_enabled = false
+  public_network_access_enabled = true
 
   sku {
     name     = "S1"
@@ -69,6 +69,11 @@ resource "null_resource" "dps_rootca_enroll" {
   provisioner "local-exec" {
     command = "az iot dps enrollment-group create -g ${var.resource_group_name} --dps-name ${azurerm_iothub_dps.iot_dps.name}  --enrollment-id ${var.resource_prefix}-enrollmentgroup --edge-enabled true --ca-name ${var.issuing_ca}"
   }
+
+  provisioner "local-exec" {
+    command = "az iot dps update  --name ${azurerm_iothub_dps.iot_dps.name} --resource-group ${var.resource_group_name} --set properties.publicNetworkAccess=Disabled"
+  }
+
 }
 
 resource "azurerm_subnet" "iot_subnet" {

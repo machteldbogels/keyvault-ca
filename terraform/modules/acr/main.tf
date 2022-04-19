@@ -4,7 +4,7 @@ resource "azurerm_container_registry" "acr" {
   location                      = var.location
   sku                           = "Premium" # Needs to be premium in order to disable public network access
   admin_enabled                 = true
-  public_network_access_enabled = false
+  public_network_access_enabled = true
 }
 
 resource "azurerm_subnet" "acr_subnet" {
@@ -55,7 +55,7 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
   }
 
   depends_on = [
-    azurerm_container_registry.acr
+    azurerm_container_registry.acr, null_resource.push-docker
   ]
 }
 
@@ -67,4 +67,9 @@ resource "null_resource" "push-docker" {
   provisioner "local-exec" {
     command = "az acr import --name ${azurerm_container_registry.acr.name} --source mcr.microsoft.com/azureiotedge-agent:1.2 --image azureiotedge-agent:1.2"
   }
+
+  provisioner "local-exec" {
+    command = "az acr update --name ${azurerm_container_registry.acr.name} --public-network-enabled false"
+  }
+
 }
