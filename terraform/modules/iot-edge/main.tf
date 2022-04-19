@@ -16,7 +16,19 @@ resource "azurerm_network_security_group" "iot_edge" {
   location            = var.location
 
   security_rule {
-    name                       = "default-allow-22"
+    name                       = "AllowBastionInbound"
+    priority                   = 900
+    access                     = "Allow"
+    direction                  = "Inbound"
+    protocol                   = "*"
+    source_address_prefix      = "10.0.2.0/26"
+    source_port_range          = "*"
+    destination_address_prefix = "*"
+    destination_port_ranges     = ["3389","22"]
+  }
+
+  security_rule {
+    name                       = "Default-Deny-22"
     priority                   = 1000
     access                     = "Deny"
     direction                  = "Inbound"
@@ -27,8 +39,8 @@ resource "azurerm_network_security_group" "iot_edge" {
     destination_address_prefix = "*"
   }
 
-    security_rule {
-    name                       = "default-deny-outbound-internet"
+  security_rule {
+    name                       = "Default-Deny-Outbound-Internet"
     priority                   = 1000
     access                     = "Deny"
     direction                  = "OutBound"
@@ -38,6 +50,7 @@ resource "azurerm_network_security_group" "iot_edge" {
     source_port_range          = "*"
     destination_address_prefix = "Internet"
   }
+
 }
 
 resource "azurerm_virtual_network" "iot_edge" {
@@ -45,12 +58,6 @@ resource "azurerm_virtual_network" "iot_edge" {
   location            = var.location
   resource_group_name = var.resource_group_name
   address_space       = ["10.0.0.0/16"]
-
-  # subnet {
-  #   name           = "${local.dns_label_prefix}-iotedge-subnet"
-  #   address_prefix = "10.0.1.0/24"
-  #   security_group = azurerm_network_security_group.iot_edge.id
-  # }
 }
 
 resource "azurerm_subnet" "iotedge_subnet" {
