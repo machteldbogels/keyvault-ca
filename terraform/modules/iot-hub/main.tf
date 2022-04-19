@@ -20,16 +20,6 @@ resource "azurerm_iothub" "iothub" {
   }
 }
 
-# resource "azurerm_iothub_shared_access_policy" "iothub_accesspolicy" {
-#   name                = "iot_hub_sas"
-#   resource_group_name = var.resource_group_name
-#   iothub_name         = azurerm_iothub.iothub.name
-#   registry_read       = true # allow reading from device registry
-#   registry_write      = true # allow writing to device registry
-#   service_connect     = true # allows c2d communication and access to service endpoints
-#   device_connect      = true # allows sending and receiving on the device-side endpoints
-# }
-
 resource "azurerm_iothub_shared_access_policy" "iot_hub_dps_shared_access_policy" {
   name                = "iot-hub-dps-access"
   resource_group_name = var.resource_group_name
@@ -127,7 +117,11 @@ resource "azurerm_private_endpoint" "iothub_private_endpoint" {
   private_dns_zone_group {
     name                           = "${var.resource_prefix}-iothub-dns-zone-group"
     private_dns_zone_ids           = [azurerm_private_dns_zone.iothub_dns_zone.id]
-  }   
+  }
+
+  depends_on = [
+    azurerm_iothub.iothub
+  ]
 }
 
 # DEVICE PROVISIONING SERVICE
@@ -167,7 +161,11 @@ resource "azurerm_private_endpoint" "dps_private_endpoint" {
   private_dns_zone_group {
     name                           = "${var.resource_prefix}-dps-dns-zone-group"
     private_dns_zone_ids           = [azurerm_private_dns_zone.dps_dns_zone.id]
-  }     
+  }    
+
+  depends_on = [
+    azurerm_iothub_dps.iot_dps, null_resource.dps_rootca_enroll
+  ] 
 }
 
 # BASTION HOST

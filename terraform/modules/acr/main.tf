@@ -52,7 +52,11 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
   private_dns_zone_group {
     name                           = "${var.resource_prefix}-acr-dns-zone-group"
     private_dns_zone_ids           = [azurerm_private_dns_zone.acr_dns_zone.id]
-  }   
+  }
+
+  depends_on = [
+    azurerm_container_registry.acr
+  ]
 }
 
 resource "null_resource" "push-docker" {
@@ -60,7 +64,6 @@ resource "null_resource" "push-docker" {
     command = "az acr build --image sample/estserver:v2 --registry ${azurerm_container_registry.acr.name} https://github.com/machteldbogels/keyvault-ca.git --file ./././KeyVaultCA.Web/Dockerfile"
   }
 
-  # this one might need to be executed inside VM as well after it has private endpoint
   provisioner "local-exec" {
     command = "az acr import --name ${azurerm_container_registry.acr.name} --source mcr.microsoft.com/azureiotedge-agent:1.2 --image azureiotedge-agent:1.2"
   }
