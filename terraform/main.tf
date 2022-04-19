@@ -17,7 +17,7 @@ provider "azurerm" {
 
 resource "random_id" "prefix" {
   byte_length = 4
-  prefix      = "f"
+  prefix      = "w"
 }
 
 resource "random_string" "vm_user_name" {
@@ -57,6 +57,8 @@ module "acr" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
   resource_prefix     = local.resource_prefix
+  vnet_name           = module.iot_edge.vnet_name
+  vnet_id             = module.iot_edge.vnet_id
 }
 
 module "appservice" {
@@ -82,6 +84,7 @@ module "iot_hub" {
   issuing_ca          = local.issuing_ca
   keyvault_name       = module.keyvault.keyvault_name
   vnet_name           = module.iot_edge.vnet_name
+  vnet_id             = module.iot_edge.vnet_id
 }
 
 module "iot_edge" {
@@ -97,6 +100,10 @@ module "iot_edge" {
   app_hostname        = module.appservice.app_hostname
   est_user            = module.appservice.est_user
   est_password        = module.appservice.est_password
+  iot_dps_name        = module.iot_hub.iot_dps_name
+  acr_admin_username  = module.acr.acr_admin_username
+  acr_admin_password  = module.acr.acr_admin_password
+  acr_name            = module.acr.acr_name
 }
 
 resource "null_resource" "run-api-facade" {
