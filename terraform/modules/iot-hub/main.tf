@@ -61,6 +61,7 @@ resource "null_resource" "dps_rootca_enroll" {
     working_dir = "../KeyVaultCA.Web/TrustedCAs"
     command     = "az keyvault certificate download --file ${var.issuing_ca}.cer --encoding PEM --name ${var.issuing_ca} --vault-name ${var.keyvault_name}"
   }
+
   provisioner "local-exec" {
     working_dir = "../KeyVaultCA.Web/TrustedCAs"
     command     = "az iot dps certificate create --certificate-name ${var.issuing_ca} --dps-name ${azurerm_iothub_dps.iot_dps.name} --path ${var.issuing_ca}.cer --resource-group ${var.resource_group_name} --verified true"
@@ -77,7 +78,6 @@ resource "null_resource" "dps_rootca_enroll" {
   depends_on = [
     azurerm_iothub_dps.iot_dps
   ]
-
 }
 
 resource "azurerm_subnet" "iot_subnet" {
