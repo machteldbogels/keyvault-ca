@@ -72,4 +72,8 @@ resource "null_resource" "push-docker" {
     command = "az acr update --name ${azurerm_container_registry.acr.name} --public-network-enabled false"
   }
 
+  depends_on = [
+    azurerm_container_registry.acr
+  ]
+
 }

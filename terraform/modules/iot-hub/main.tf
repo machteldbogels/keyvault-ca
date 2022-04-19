@@ -74,6 +74,10 @@ resource "null_resource" "dps_rootca_enroll" {
     command = "az iot dps update  --name ${azurerm_iothub_dps.iot_dps.name} --resource-group ${var.resource_group_name} --set properties.publicNetworkAccess=Disabled"
   }
 
+  depends_on = [
+    azurerm_iothub_dps.iot_dps
+  ]
+
 }
 
 resource "azurerm_subnet" "iot_subnet" {
@@ -125,7 +129,7 @@ resource "azurerm_private_endpoint" "iothub_private_endpoint" {
   }
 
   depends_on = [
-    azurerm_iothub.iothub
+    azurerm_iothub_shared_access_policy.iot_hub_dps_shared_access_policy
   ]
 }
 
