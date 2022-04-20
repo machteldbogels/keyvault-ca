@@ -60,13 +60,9 @@ resource "azurerm_key_vault_access_policy" "app_accesspolicy" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = azurerm_app_service.appservice.identity.0.principal_id
 
-  key_permissions = [
-    "Sign"
-  ]
+  key_permissions = ["Sign"]
 
-  certificate_permissions = [
-    "Get", "List", "Update", "Create"
-  ]
+  certificate_permissions = ["Get", "List", "Update", "Create"]
 }
 
 resource "azurerm_key_vault_access_policy" "user_accesspolicy" {
@@ -74,11 +70,7 @@ resource "azurerm_key_vault_access_policy" "user_accesspolicy" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions = [
-    "Sign"
-  ]
+  key_permissions = ["Sign"]
 
-  certificate_permissions = [
-    "Get", "List", "Update", "Create", "Import", "Delete", "Recover", "Backup", "Restore", "ManageIssuers", "GetIssuers", "ListIssuers", "SetIssuers", "DeleteIssuers"
-  ]
+  certificate_permissions = ["Get", "List", "Update", "Create", "Import", "Delete", "Recover", "Backup", "Restore", "ManageIssuers", "GetIssuers", "ListIssuers", "SetIssuers", "DeleteIssuers"]
 }

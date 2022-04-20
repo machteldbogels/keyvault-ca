@@ -24,7 +24,7 @@ resource "azurerm_network_security_group" "iot_edge" {
     source_address_prefix      = "10.0.2.0/26"
     source_port_range          = "*"
     destination_address_prefix = "*"
-    destination_port_ranges     = ["3389","22"]
+    destination_port_ranges    = ["3389", "22"]
   }
 
   security_rule {
@@ -83,9 +83,7 @@ resource "azurerm_linux_virtual_machine" "iot_edge" {
   provision_vm_agent         = false
   allow_extension_operations = false
   size                       = var.vm_sku
-  network_interface_ids = [
-    azurerm_network_interface.iot_edge.id
-  ]
+  network_interface_ids      = [azurerm_network_interface.iot_edge.id]
 
   custom_data = base64encode(templatefile("modules/iot-edge/cloud-init.yaml", {
     "SCOPE_ID"        = var.dps_scope_id

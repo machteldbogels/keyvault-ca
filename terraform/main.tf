@@ -111,7 +111,7 @@ resource "null_resource" "run-api-facade" {
     working_dir = "../KeyvaultCA"
     command     = "dotnet run --Csr:IsRootCA true --Csr:Subject ${"C=US, ST=WA, L=Redmond, O=Contoso, OU=Contoso HR, CN=Contoso Inc"} --Keyvault:IssuingCA ${local.issuing_ca} --Keyvault:KeyVaultUrl ${module.keyvault.keyvault_url}"
   }
-  
+
   provisioner "local-exec" {
     working_dir = "../KeyVaultCA"
     command     = "openssl genrsa -out ${local.certs_path}.key 2048"

@@ -50,13 +50,11 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
   }
 
   private_dns_zone_group {
-    name                           = "${var.resource_prefix}-acr-dns-zone-group"
-    private_dns_zone_ids           = [azurerm_private_dns_zone.acr_dns_zone.id]
+    name                 = "${var.resource_prefix}-acr-dns-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.acr_dns_zone.id]
   }
 
-  depends_on = [
-    azurerm_container_registry.acr, null_resource.push-docker
-  ]
+  depends_on = [azurerm_container_registry.acr, null_resource.push-docker]
 }
 
 resource "null_resource" "push-docker" {
@@ -72,8 +70,5 @@ resource "null_resource" "push-docker" {
     command = "az acr update --name ${azurerm_container_registry.acr.name} --public-network-enabled false"
   }
 
-  depends_on = [
-    azurerm_container_registry.acr
-  ]
-
+  depends_on = [azurerm_container_registry.acr]
 }

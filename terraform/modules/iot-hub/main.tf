@@ -14,10 +14,6 @@ resource "azurerm_iothub" "iothub" {
     endpoint_names = ["events"]
     enabled        = true
   }
-
-  tags = {
-    purpose = "testing"
-  }
 }
 
 resource "azurerm_iothub_shared_access_policy" "iot_hub_dps_shared_access_policy" {
@@ -75,9 +71,7 @@ resource "null_resource" "dps_rootca_enroll" {
     command = "az iot dps update  --name ${azurerm_iothub_dps.iot_dps.name} --resource-group ${var.resource_group_name} --set properties.publicNetworkAccess=Disabled"
   }
 
-  depends_on = [
-    azurerm_iothub_dps.iot_dps
-  ]
+  depends_on = [azurerm_iothub_dps.iot_dps]
 }
 
 resource "azurerm_subnet" "iot_subnet" {
@@ -124,13 +118,11 @@ resource "azurerm_private_endpoint" "iothub_private_endpoint" {
   }
 
   private_dns_zone_group {
-    name                           = "${var.resource_prefix}-iothub-dns-zone-group"
-    private_dns_zone_ids           = [azurerm_private_dns_zone.iothub_dns_zone.id]
+    name                 = "${var.resource_prefix}-iothub-dns-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.iothub_dns_zone.id]
   }
 
-  depends_on = [
-    azurerm_iothub_shared_access_policy.iot_hub_dps_shared_access_policy
-  ]
+  depends_on = [azurerm_iothub_shared_access_policy.iot_hub_dps_shared_access_policy]
 }
 
 # DEVICE PROVISIONING SERVICE
@@ -165,16 +157,14 @@ resource "azurerm_private_endpoint" "dps_private_endpoint" {
     private_connection_resource_id = azurerm_iothub_dps.iot_dps.id
     is_manual_connection           = false
     subresource_names              = ["iotDps"]
-  }  
+  }
 
   private_dns_zone_group {
-    name                           = "${var.resource_prefix}-dps-dns-zone-group"
-    private_dns_zone_ids           = [azurerm_private_dns_zone.dps_dns_zone.id]
-  }    
+    name                 = "${var.resource_prefix}-dps-dns-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.dps_dns_zone.id]
+  }
 
-  depends_on = [
-    azurerm_iothub_dps.iot_dps, null_resource.dps_rootca_enroll
-  ] 
+  depends_on = [azurerm_iothub_dps.iot_dps, null_resource.dps_rootca_enroll]
 }
 
 # BASTION HOST
