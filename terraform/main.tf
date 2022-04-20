@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.98.0"
+      version = "=3.2.0"
     }
   }
 }
@@ -17,7 +17,7 @@ provider "azurerm" {
 
 resource "random_id" "prefix" {
   byte_length = 4
-  prefix      = "w"
+  prefix      = "L"
 }
 
 resource "random_string" "vm_user_name" {
@@ -53,12 +53,13 @@ module "keyvault" {
 }
 
 module "acr" {
-  source              = "./modules/acr"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = var.location
-  resource_prefix     = local.resource_prefix
-  vnet_name           = module.iot_edge.vnet_name
-  vnet_id             = module.iot_edge.vnet_id
+  source               = "./modules/acr"
+  resource_group_name  = azurerm_resource_group.rg.name
+  location             = var.location
+  resource_prefix      = local.resource_prefix
+  vnet_name            = module.iot_edge.vnet_name
+  vnet_id              = module.iot_edge.vnet_id
+  app_princ_id         = module.appservice.app_princ_id 
 }
 
 module "appservice" {
@@ -69,10 +70,10 @@ module "appservice" {
   issuing_ca          = local.issuing_ca
   keyvault_id         = module.keyvault.keyvault_id
   keyvault_url        = module.keyvault.keyvault_url
-  acr_name            = module.acr.acr_name
   acr_login_server    = module.acr.acr_login_server
-  acr_admin_username  = module.acr.acr_admin_username
-  acr_admin_password  = module.acr.acr_admin_password
+  vnet_name           = module.iot_edge.vnet_name
+  vnet_id             = module.iot_edge.vnet_id
+  iotedge_subnet_id   = module.iot_edge.iotedge_subnet_id
 }
 
 module "iot_hub" {
@@ -131,5 +132,24 @@ resource "null_resource" "run-api-facade" {
   provisioner "local-exec" {
     working_dir = "../KeyVaultCA"
     command     = "dotnet run --Csr:IsRootCA false --Csr:PathToCsr ${local.certs_path}.csr.der --Csr:OutputFileName ${local.certs_path}-cert --Keyvault:IssuingCA ${local.issuing_ca} --Keyvault:KeyVaultUrl ${module.keyvault.keyvault_url}"
+  }
+}
+
+
+resource "null_resource" "disable_public_network" {
+  provisioner "local-exec" {
+    command = "az acr update --name ${module.acr.acr_name} --public-network-enabled false"
+  }
+  
+  provisioner "local-exec" {
+    command = "az iot dps update  --name ${module.iot_hub.iot_dps_name} --resource-group ${azurerm_resource_group.rg.name} --set properties.publicNetworkAccess=Disabled"
+  }
+
+  depends_on = [
+    module.acr,module.iot_hub
+  ]
+
+  triggers = {
+    timestamp = timestamp()
   }
 }

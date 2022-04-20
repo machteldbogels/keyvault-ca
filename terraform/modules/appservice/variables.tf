@@ -38,22 +38,22 @@ variable "cert_validity_in_days" {
   default = "365"
 }
 
-variable "acr_name" {
-  type = string
-}
-
 variable "acr_login_server" {
   type = string
 }
 
-variable "acr_admin_username" {
-  type = string
-}
-
-variable "acr_admin_password" {
-  type = string
-}
-
 variable "keyvault_id" {
+  type = string
+}
+
+variable "vnet_name" {
+  type = string
+}
+
+variable "vnet_id" {
+  type = string
+}
+
+variable "iotedge_subnet_id" {
   type = string
 }

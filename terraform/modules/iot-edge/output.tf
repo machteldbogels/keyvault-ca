@@ -9,3 +9,7 @@ output "vnet_name" {
 output "vnet_id" {
   value = azurerm_virtual_network.iot_edge.id
 }
+
+output "iotedge_subnet_id" {
+  value = azurerm_subnet.iotedge_subnet.id
+}

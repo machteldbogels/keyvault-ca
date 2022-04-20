@@ -17,3 +17,7 @@ variable "vnet_name" {
 variable "vnet_id" {
   type = string
 }
+
+variable "app_princ_id" {
+  type = string
+}
