@@ -50,6 +50,8 @@ module "keyvault" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
   resource_prefix     = local.resource_prefix
+  vnet_name           = module.iot_edge.vnet_name
+  vnet_id             = module.iot_edge.vnet_id
 }
 
 module "acr" {

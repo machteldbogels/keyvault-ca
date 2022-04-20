@@ -37,8 +37,6 @@ resource "azurerm_linux_web_app" "appservice" {
     # } ]
 
     container_registry_use_managed_identity = true
-
-
   }
 
   identity {
@@ -58,7 +56,6 @@ resource "azurerm_linux_web_app" "appservice" {
     "ApplicationInsightsAgent_EXTENSION_VERSION" = "~2"
     "WEBSITE_PULL_IMAGE_OVER_VNET"               = true
   }
-
 }
 
 resource "azurerm_key_vault_access_policy" "app_accesspolicy" {
@@ -144,9 +141,7 @@ resource "azurerm_private_endpoint" "app_private_endpoint" {
     private_dns_zone_ids           = [azurerm_private_dns_zone.app_dns_zone.id]
   }
 
-  depends_on = [
-    azurerm_linux_web_app.appservice
-  ]
+  depends_on = [azurerm_linux_web_app.appservice]
 }
 
 resource "azurerm_app_service_virtual_network_swift_connection" "app_vnet_connection" {
