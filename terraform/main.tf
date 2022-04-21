@@ -55,13 +55,13 @@ module "keyvault" {
 }
 
 module "acr" {
-  source               = "./modules/acr"
-  resource_group_name  = azurerm_resource_group.rg.name
-  location             = var.location
-  resource_prefix      = local.resource_prefix
-  vnet_name            = module.iot_edge.vnet_name
-  vnet_id              = module.iot_edge.vnet_id
-  app_princ_id         = module.appservice.app_princ_id 
+  source              = "./modules/acr"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location
+  resource_prefix     = local.resource_prefix
+  vnet_name           = module.iot_edge.vnet_name
+  vnet_id             = module.iot_edge.vnet_id
+  app_princ_id        = module.appservice.app_princ_id
 }
 
 module "appservice" {
@@ -71,8 +71,7 @@ module "appservice" {
   resource_prefix     = local.resource_prefix
   issuing_ca          = local.issuing_ca
   keyvault_id         = module.keyvault.keyvault_id
-  keyvault_url        = module.keyvault.keyvault_url
-  keyvault_name       = module.keyvault.keyvault_name 
+  keyvault_name       = module.keyvault.keyvault_name
   acr_login_server    = module.acr.acr_login_server
   vnet_name           = module.iot_edge.vnet_name
   vnet_id             = module.iot_edge.vnet_id
@@ -143,7 +142,7 @@ resource "null_resource" "disable_public_network" {
   provisioner "local-exec" {
     command = "az acr update --name ${module.acr.acr_name} --public-network-enabled false"
   }
-  
+
   provisioner "local-exec" {
     command = "az iot dps update  --name ${module.iot_hub.iot_dps_name} --resource-group ${azurerm_resource_group.rg.name} --set properties.publicNetworkAccess=Disabled"
   }
@@ -152,9 +151,7 @@ resource "null_resource" "disable_public_network" {
     command = "az keyvault update --name ${module.keyvault.keyvault_name} --public-network-access Disabled"
   }
 
-  depends_on = [
-    module.acr,module.iot_hub
-  ]
+  depends_on = [module.acr, module.iot_hub]
 
   triggers = {
     timestamp = timestamp()

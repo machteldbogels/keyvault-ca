@@ -8,9 +8,9 @@ resource "azurerm_container_registry" "acr" {
 }
 
 resource "azurerm_role_assignment" "acr_app_service" {
-  principal_id                     = var.app_princ_id
-  role_definition_name             = "AcrPull"
-  scope                            = azurerm_container_registry.acr.id
+  principal_id         = var.app_princ_id
+  role_definition_name = "AcrPull"
+  scope                = azurerm_container_registry.acr.id
 }
 
 resource "azurerm_subnet" "acr_subnet" {
