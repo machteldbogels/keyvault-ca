@@ -17,7 +17,7 @@ provider "azurerm" {
 
 resource "random_id" "prefix" {
   byte_length = 4
-  prefix      = "L"
+  prefix      = "t"
 }
 
 resource "random_string" "vm_user_name" {
@@ -145,6 +145,10 @@ resource "null_resource" "disable_public_network" {
   
   provisioner "local-exec" {
     command = "az iot dps update  --name ${module.iot_hub.iot_dps_name} --resource-group ${azurerm_resource_group.rg.name} --set properties.publicNetworkAccess=Disabled"
+  }
+
+  provisioner "local-exec" {
+    command = "az keyvault update --name ${module.keyvault.keyvault_name} --public-network-access Disabled"
   }
 
   depends_on = [

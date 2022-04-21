@@ -9,11 +9,6 @@ resource "azurerm_key_vault" "keyvault-ca" {
   purge_protection_enabled    = false
   soft_delete_retention_days  = 7
   sku_name                    = "standard"
-
-  network_acls {
-    default_action = "Deny"
-    bypass         = "AzureServices"
-  }
 }
 
 resource "azurerm_subnet" "kv_subnet" {
