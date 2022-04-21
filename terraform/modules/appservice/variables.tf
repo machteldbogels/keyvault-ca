@@ -42,6 +42,10 @@ variable "acr_login_server" {
   type = string
 }
 
+variable "keyvault_name" {
+  type = string
+}
+
 variable "keyvault_id" {
   type = string
 }

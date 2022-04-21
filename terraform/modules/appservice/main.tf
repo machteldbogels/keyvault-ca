@@ -45,7 +45,7 @@ resource "azurerm_linux_web_app" "appservice" {
 
   app_settings = {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE          = false
-    "Keyvault__KeyVaultUrl"                      = var.keyvault_url
+    "Keyvault__KeyVaultUrl"                      = "https://${var.keyvault_name}.privatelink.vaultcore.azure.net/"
     "EstAuthentication__Auth"                    = var.authmode
     "EstAuthentication__EstUsername"             = var.est_user
     "EstAuthentication__EstPassword"             = var.est_password
