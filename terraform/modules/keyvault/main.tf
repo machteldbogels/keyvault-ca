@@ -11,14 +11,8 @@ resource "azurerm_key_vault" "keyvault-ca" {
   sku_name                    = "standard"
 
   network_acls {
-    # The Default Action to use when no rules match from ip_rules / 
-    # virtual_network_subnet_ids. Possible values are Allow and Deny
     default_action = "Deny"
-
-    # Allows all azure services to acces your keyvault. Can be set to 'None'
     bypass         = "AzureServices"
-
-    #virtual_network_subnet_ids = [var.vnet_id] # add subnet id of appservice subnet -> can lead to cycle!!
   }
 }
 
