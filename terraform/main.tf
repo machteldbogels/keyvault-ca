@@ -71,6 +71,7 @@ module "appservice" {
   resource_prefix     = local.resource_prefix
   issuing_ca          = local.issuing_ca
   keyvault_id         = module.keyvault.keyvault_id
+  keyvault_url        = module.keyvault.keyvault_url
   keyvault_name       = module.keyvault.keyvault_name
   acr_login_server    = module.acr.acr_login_server
   vnet_name           = module.iot_edge.vnet_name
