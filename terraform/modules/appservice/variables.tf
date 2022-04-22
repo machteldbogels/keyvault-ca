@@ -10,10 +10,6 @@ variable "resource_prefix" {
   type = string
 }
 
-variable "keyvault_url" {
-  type = string
-}
-
 variable "authmode" {
   type    = string
   default = "Basic"

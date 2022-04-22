@@ -23,14 +23,13 @@ resource "azurerm_linux_web_app" "appservice" {
   service_plan_id            = azurerm_service_plan.appserviceplan.id
   client_certificate_enabled = var.authmode == "Basic" ? false : true
   client_certificate_mode    = var.authmode == "Basic" ? "Optional" : "Required"
-  
+
   site_config {
-    
     application_stack {
-    docker_image             = "${var.acr_login_server}/sample/estserver"
-    docker_image_tag         = "v2" 
+      docker_image     = "${var.acr_login_server}/sample/estserver"
+      docker_image_tag = "v2"
     }
-    
+
     container_registry_use_managed_identity = true
   }
 
@@ -132,8 +131,8 @@ resource "azurerm_private_endpoint" "app_private_endpoint" {
   }
 
   private_dns_zone_group {
-    name                           = "${var.resource_prefix}-app-dns-zone-group"
-    private_dns_zone_ids           = [azurerm_private_dns_zone.app_dns_zone.id]
+    name                 = "${var.resource_prefix}-app-dns-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.app_dns_zone.id]
   }
 
   depends_on = [azurerm_linux_web_app.appservice]

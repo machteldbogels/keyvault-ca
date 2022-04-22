@@ -13,5 +13,5 @@ output "est_password" {
 }
 
 output "app_princ_id" {
-  value     = azurerm_linux_web_app.appservice.identity.0.principal_id
+  value = azurerm_linux_web_app.appservice.identity.0.principal_id
 }
