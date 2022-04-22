@@ -31,11 +31,6 @@ resource "azurerm_linux_web_app" "appservice" {
     docker_image_tag         = "v2" 
     }
     
-    # ip_restriction = [ {
-    #   action = "Allow"
-    #   virtual_network_subnet_id = var.iotedge_subnet_id
-    # } ]
-
     container_registry_use_managed_identity = true
   }
 
@@ -45,7 +40,7 @@ resource "azurerm_linux_web_app" "appservice" {
 
   app_settings = {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE          = false
-    "Keyvault__KeyVaultUrl"                      = "https://${var.keyvault_name}.privatelink.vaultcore.azure.net/"
+    "Keyvault__KeyVaultUrl"                      = var.keyvault_url
     "EstAuthentication__Auth"                    = var.authmode
     "EstAuthentication__EstUsername"             = var.est_user
     "EstAuthentication__EstPassword"             = var.est_password
