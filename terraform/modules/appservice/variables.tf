@@ -38,6 +38,10 @@ variable "acr_login_server" {
   type = string
 }
 
+variable "keyvault_url" {
+  type = string
+}
+
 variable "keyvault_name" {
   type = string
 }
