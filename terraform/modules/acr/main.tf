@@ -1,5 +1,5 @@
 resource "azurerm_container_registry" "acr" {
-  name                          = "${var.resource_prefix}acr"
+  name                          = "cr${var.resource_prefix}"
   resource_group_name           = var.resource_group_name
   location                      = var.location
   sku                           = "Premium" # Needs to be premium in order to disable public network access
@@ -14,7 +14,7 @@ resource "azurerm_role_assignment" "acr_app_service" {
 }
 
 resource "azurerm_subnet" "acr_subnet" {
-  name                 = "${var.resource_prefix}-acr-subnet"
+  name                 = "acr-subnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = var.vnet_name
   address_prefixes     = ["10.0.4.0/24"]
@@ -43,7 +43,7 @@ resource "azurerm_private_dns_a_record" "acr_dns_a_record" {
 }
 
 resource "azurerm_private_endpoint" "acr_private_endpoint" {
-  name                = "${var.resource_prefix}-acr-private-endpoint"
+  name                = "priv-endpoint-acr-${var.resource_prefix}"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = azurerm_subnet.acr_subnet.id
@@ -56,7 +56,7 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
   }
 
   private_dns_zone_group {
-    name                 = "${var.resource_prefix}-acr-dns-zone-group"
+    name                 = "dns-zone-group-acr-${var.resource_prefix}"
     private_dns_zone_ids = [azurerm_private_dns_zone.acr_dns_zone.id]
   }
 
@@ -65,7 +65,7 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
 
 resource "null_resource" "push-docker" {
   provisioner "local-exec" {
-    command = "az acr build --image sample/estserver:v2 --registry ${azurerm_container_registry.acr.name} https://github.com/machteldbogels/keyvault-ca.git --file ./././KeyVaultCA.Web/Dockerfile"
+    command = "az acr build -r ${azurerm_container_registry.acr.name} -t sample/estserver:v2 https://github.com/vslepakov/keyvault-ca.git -f ./././KeyVaultCA.Web/Dockerfile"
   }
 
   provisioner "local-exec" {

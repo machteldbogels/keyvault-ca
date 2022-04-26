@@ -20,10 +20,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-        <None Update="TrustedCAs\xce2815a9-ca.cer">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
+		<Folder Include="TrustedCAs\" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<Content Update="appsettings.json">

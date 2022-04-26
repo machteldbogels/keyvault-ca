@@ -15,14 +15,14 @@ variable "authmode" {
   default = "Basic"
 }
 
-variable "est_user" {
+variable "est_username" {
   type    = string
-  default = "foo"
+  default = "azureuser"
 }
 
 variable "est_password" {
   type    = string
-  default = "bar"
+  default = ""
 }
 
 variable "issuing_ca" {
@@ -43,10 +43,6 @@ variable "keyvault_url" {
 }
 
 variable "keyvault_name" {
-  type = string
-}
-
-variable "keyvault_id" {
   type = string
 }
 

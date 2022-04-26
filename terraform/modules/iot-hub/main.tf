@@ -1,5 +1,5 @@
 resource "azurerm_iothub" "iothub" {
-  name                          = "${var.resource_prefix}-iot-hub"
+  name                          = "iot-${var.resource_prefix}"
   resource_group_name           = var.resource_group_name
   location                      = var.location
   public_network_access_enabled = false
@@ -32,7 +32,7 @@ resource "azurerm_iothub_shared_access_policy" "iot_hub_dps_shared_access_policy
 }
 
 resource "azurerm_iothub_dps" "iot_dps" {
-  name                          = "${var.resource_prefix}-iotdps"
+  name                          = "provs-${var.resource_prefix}"
   resource_group_name           = var.resource_group_name
   location                      = var.location
   public_network_access_enabled = true
@@ -53,18 +53,38 @@ resource "azurerm_iothub_dps" "iot_dps" {
 
 # Currently using local exec instead of azurerm_iothub_dps_certificate due to missing option to verify CA during upload in Terraform, missing ability to create enrollment groups and to retrieve cert from Key Vault instead of manual download
 resource "null_resource" "dps_rootca_enroll" {
-  provisioner "local-exec" {
-    working_dir = "../KeyVaultCA.Web/TrustedCAs"
-    command     = "az keyvault certificate download --file ${var.issuing_ca}.cer --encoding PEM --name ${var.issuing_ca} --vault-name ${var.keyvault_name}"
+  triggers = {
+    cer = "${var.issuing_ca}.cer"
   }
 
   provisioner "local-exec" {
-    working_dir = "../KeyVaultCA.Web/TrustedCAs"
-    command     = "az iot dps certificate create --certificate-name ${var.issuing_ca} --dps-name ${azurerm_iothub_dps.iot_dps.name} --path ${var.issuing_ca}.cer --resource-group ${var.resource_group_name} --verified true"
+    interpreter = ["/bin/bash", "-c"]
+    working_dir = "${path.root}/../KeyVaultCA.Web/TrustedCAs"
+    when        = create
+    command     = <<EOF
+      set -Eeuo pipefail
+
+      az config set extension.use_dynamic_install=yes_without_prompt
+
+      CERT_NAME=$(az iot dps certificate list -g ${var.resource_group_name} --dps-name ${azurerm_iothub_dps.iot_dps.name} --query "value[?name=='${var.issuing_ca}'].name" -o tsv)
+
+      if [ -z "$CERT_NAME" ]
+      then
+        az keyvault certificate download --vault-name ${var.keyvault_name} -n ${var.issuing_ca} -f ${self.triggers.cer} -e PEM
+        az iot dps certificate create -g ${var.resource_group_name} -n ${var.issuing_ca} --dps-name ${azurerm_iothub_dps.iot_dps.name} -p ${self.triggers.cer} -v true
+      else
+        echo "Cert ${var.issuing_ca} already exists."
+      fi
+
+      az iot dps enrollment-group create -g ${var.resource_group_name} --dps-name ${azurerm_iothub_dps.iot_dps.name} --eid ${var.resource_prefix}-enrollmentgroup --ee true --cn ${var.issuing_ca}
+    EOF
   }
 
   provisioner "local-exec" {
-    command = "az iot dps enrollment-group create -g ${var.resource_group_name} --dps-name ${azurerm_iothub_dps.iot_dps.name}  --enrollment-id ${var.resource_prefix}-enrollmentgroup --edge-enabled true --ca-name ${var.issuing_ca}"
+    interpreter = ["/bin/bash", "-c"]
+    working_dir = "${path.root}/../KeyVaultCA.Web/TrustedCAs"
+    when        = destroy
+    command     = "rm -f ${self.triggers.cer}"
   }
 
   provisioner "local-exec" {
@@ -75,7 +95,7 @@ resource "null_resource" "dps_rootca_enroll" {
 }
 
 resource "azurerm_subnet" "iot_subnet" {
-  name                 = "${var.resource_prefix}-iot-subnet"
+  name                 = "iot-subnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = var.vnet_name
   address_prefixes     = ["10.0.3.0/24"]
@@ -105,7 +125,7 @@ resource "azurerm_private_dns_a_record" "iothub_dns_a_record" {
 }
 
 resource "azurerm_private_endpoint" "iothub_private_endpoint" {
-  name                = "${var.resource_prefix}-iothub-private-endpoint"
+  name                = "priv-endpoint-iothub-${var.resource_prefix}"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = azurerm_subnet.iot_subnet.id
@@ -118,7 +138,7 @@ resource "azurerm_private_endpoint" "iothub_private_endpoint" {
   }
 
   private_dns_zone_group {
-    name                 = "${var.resource_prefix}-iothub-dns-zone-group"
+    name                 = "iothub-dns-zone-group-${var.resource_prefix}"
     private_dns_zone_ids = [azurerm_private_dns_zone.iothub_dns_zone.id]
   }
 
@@ -147,7 +167,7 @@ resource "azurerm_private_dns_a_record" "dps_dns_a_record" {
 }
 
 resource "azurerm_private_endpoint" "dps_private_endpoint" {
-  name                = "${var.resource_prefix}-dps-private-endpoint"
+  name                = "priv-endpoint-dps-${var.resource_prefix}"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = azurerm_subnet.iot_subnet.id
@@ -160,7 +180,7 @@ resource "azurerm_private_endpoint" "dps_private_endpoint" {
   }
 
   private_dns_zone_group {
-    name                 = "${var.resource_prefix}-dps-dns-zone-group"
+    name                 = "dps-dns-zone-group${var.resource_prefix}"
     private_dns_zone_ids = [azurerm_private_dns_zone.dps_dns_zone.id]
   }
 
@@ -176,7 +196,7 @@ resource "azurerm_subnet" "bastion_subnet" {
 }
 
 resource "azurerm_public_ip" "public_ip" {
-  name                = "${var.resource_prefix}-bastion-ip"
+  name                = "bastion-ip-${var.resource_prefix}"
   location            = var.location
   resource_group_name = var.resource_group_name
   allocation_method   = "Static"
@@ -184,7 +204,7 @@ resource "azurerm_public_ip" "public_ip" {
 }
 
 resource "azurerm_bastion_host" "bastion" {
-  name                = "${var.resource_prefix}-bastion-host"
+  name                = "bastion-host-${var.resource_prefix}"
   location            = var.location
   resource_group_name = var.resource_group_name
 

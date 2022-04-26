@@ -86,8 +86,8 @@ write_files:
 
       [agent.config.auth]
       serveraddress = "${ACR_NAME}.azurecr.io"
-      username = "${USERNAME}"
-      password = "${PASSWORD}"
+      username = "${ACR_USERNAME}"
+      password = "${ACR_PASSWORD}"
       
       # ==============================================================================
       # Edge CA certificate issued over EST:

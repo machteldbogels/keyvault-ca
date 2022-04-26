@@ -13,3 +13,11 @@ output "vnet_id" {
 output "iotedge_subnet_id" {
   value = azurerm_subnet.iotedge_subnet.id
 }
+
+output "vm_username" {
+  value = var.vm_username
+}
+
+output "vm_password" {
+  value = local.vm_password
+}
