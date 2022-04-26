@@ -65,12 +65,12 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
 
 resource "null_resource" "push-docker" {
   provisioner "local-exec" {
-    command = "az acr build -r ${azurerm_container_registry.acr.name} -t sample/estserver:v2 https://github.com/vslepakov/keyvault-ca.git -f ./././KeyVaultCA.Web/Dockerfile"
+    command = "az acr build -r ${azurerm_container_registry.acr.name} -t estserver:latest ../ -f ../KeyVaultCA.Web/Dockerfile"
   }
 
   provisioner "local-exec" {
     command = "az acr import --name ${azurerm_container_registry.acr.name} --source mcr.microsoft.com/azureiotedge-agent:1.2 --image azureiotedge-agent:1.2"
   }
 
-  depends_on = [azurerm_container_registry.acr]
+  depends_on = [azurerm_container_registry.acr, var.dps_rootca_enroll_null_resource_id]
 }

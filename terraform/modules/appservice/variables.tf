@@ -10,9 +10,8 @@ variable "resource_prefix" {
   type = string
 }
 
-variable "authmode" {
-  type    = string
-  default = "Basic"
+variable "auth_mode" {
+  type = string
 }
 
 variable "est_username" {

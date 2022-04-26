@@ -2,14 +2,22 @@ locals {
   dns_label_prefix = "${var.resource_prefix}-iot-edge"
 }
 
+locals {
+  vm_password = var.vm_password == "" ? random_string.vm_password.result : var.vm_password
+}
+
+data "local_file" "est_auth_cert" {
+  filename = "${path.root}/../Certs/${var.resource_prefix}-cert.pem"
+}
+
+data "local_file" "est_auth_key" {
+  filename = "${path.root}/../Certs/${var.resource_prefix}.key.pem"
+}
+
 resource "random_string" "vm_password" {
   length  = 10
   number  = true
   special = true
-}
-
-locals {
-  vm_password = var.vm_password == "" ? random_string.vm_password.result : var.vm_password
 }
 
 resource "azurerm_public_ip" "iot_edge" {
@@ -96,17 +104,19 @@ resource "azurerm_linux_virtual_machine" "iot_edge" {
   network_interface_ids      = [azurerm_network_interface.iot_edge.id]
 
   custom_data = base64encode(templatefile("modules/iot-edge/cloud-init.yaml", {
-    "SCOPE_ID"        = var.dps_scope_id
-    "DEVICE_ID"       = var.edge_device_name
-    "EST_HOSTNAME"    = var.app_hostname
-    "EST_USERNAME"    = var.est_username
-    "EST_PASSWORD"    = var.est_password
-    "VM_USER_NAME"    = var.vm_username
-    "RESOURCE_PREFIX" = var.resource_prefix
-    "DPS_NAME"        = var.iot_dps_name
-    "ACR_USERNAME"    = var.acr_admin_username
-    "ACR_PASSWORD"    = var.acr_admin_password
-    "ACR_NAME"        = var.acr_name
+    "SCOPE_ID"         = var.dps_scope_id
+    "DEVICE_ID"        = var.edge_device_name
+    "EST_HOSTNAME"     = var.app_hostname
+    "EST_USERNAME"     = var.est_username
+    "EST_PASSWORD"     = var.est_password
+    "VM_USER_NAME"     = var.vm_username
+    "RESOURCE_PREFIX"  = var.resource_prefix
+    "DPS_NAME"         = var.iot_dps_name
+    "ACR_USERNAME"     = var.acr_admin_username
+    "ACR_PASSWORD"     = var.acr_admin_password
+    "ACR_NAME"         = var.acr_name
+    "AUTH_CERTIFICATE" = var.auth_mode == "x509" ? indent(6, data.local_file.est_auth_cert.content) : ""
+    "AUTH_KEY"         = var.auth_mode == "x509" ? indent(6, data.local_file.est_auth_key.content) : ""
   }))
 
   source_image_reference {

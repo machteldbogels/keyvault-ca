@@ -12,6 +12,9 @@ provider "azurerm" {
     key_vault {
       purge_soft_delete_on_destroy = true
     }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
   }
 }
 
@@ -22,7 +25,7 @@ resource "random_id" "prefix" {
 
 locals {
   resource_prefix  = var.resource_prefix == "" ? lower(random_id.prefix.hex) : var.resource_prefix
-  issuing_ca       = "${local.resource_prefix}-ca"
+  issuing_ca       = "ContosoRootCA"
   edge_device_name = "${local.resource_prefix}-edge-device"
 }
 
@@ -43,13 +46,14 @@ module "keyvault" {
 }
 
 module "acr" {
-  source              = "./modules/acr"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = var.location
-  resource_prefix     = local.resource_prefix
-  vnet_name           = module.iot_edge.vnet_name
-  vnet_id             = module.iot_edge.vnet_id
-  app_princ_id        = module.appservice.app_princ_id
+  source                             = "./modules/acr"
+  resource_group_name                = azurerm_resource_group.rg.name
+  location                           = var.location
+  resource_prefix                    = local.resource_prefix
+  vnet_name                          = module.iot_edge.vnet_name
+  vnet_id                            = module.iot_edge.vnet_id
+  app_princ_id                       = module.appservice.app_princ_id
+  dps_rootca_enroll_null_resource_id = module.iot_hub.dps_rootca_enroll_null_resource_id
 }
 
 module "appservice" {
@@ -58,12 +62,13 @@ module "appservice" {
   location            = var.location
   resource_prefix     = local.resource_prefix
   issuing_ca          = local.issuing_ca
-  keyvault_url        = module.keyvault.keyvault_url 
+  keyvault_url        = module.keyvault.keyvault_url
   keyvault_name       = module.keyvault.keyvault_name
   acr_login_server    = module.acr.acr_login_server
   vnet_name           = module.iot_edge.vnet_name
   vnet_id             = module.iot_edge.vnet_id
   iotedge_subnet_id   = module.iot_edge.iotedge_subnet_id
+  auth_mode           = var.auth_mode
 }
 
 module "iot_hub" {
@@ -93,6 +98,7 @@ module "iot_edge" {
   acr_admin_username  = module.acr.acr_admin_username
   acr_admin_password  = module.acr.acr_admin_password
   acr_name            = module.acr.acr_name
+  auth_mode           = var.auth_mode
 }
 
 resource "null_resource" "disable_public_network" {

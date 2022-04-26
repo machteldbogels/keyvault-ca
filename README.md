@@ -122,14 +122,24 @@ The `KeyVaultCA.Web` writes logs to an Azure Application Insights instance, for 
 
 The Terraform scripts listed under the `terraform` directory can be used to deploy the infrastructure required for E2E testing to an Azure environment. This deployment includes an App Service for the EST server to run in using an image pulled from Azure Container Registry, an Azure Key Vault for storing the Root CA and an IoT Hub, Device Provisioning Service and a Linux VM simulating an IoT Edge device. The Terraform template uses `dotnet run` to execute the API Facade Console App, hence installing the [.NET Runtime 6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) is required. The infrastructure can be deployed by cd'ing into the `terraform` directory and then running `terraform init` followed by `terraform apply`. Terraform will use the [logged in Azure user credentials](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/azure_cli) and subsequent subscription to deploy the resources to.
 
-The authentication mode is currently set at `Basic`, with default username for both the VM and EST set at `azureuser`, the passwords will be randomly generated and shown as outputs (together with the usernames) for testing purposes. If you would like to change these values you can provide other default values in the `variables.tf` files for both the `iot-edge` and `appservice` module. 
+### Pushing code changes to Azure Container Registry
+If you make code changes locally and you are using Terraform to deploy your new code to the container image in Azure Container Registry, then you can ensure these changes are picked up by Terraform by removing the current state of the resource which builds the image using the following command: `terraform state rm 'module.acr.null_resource.push-docker'`
 
-If `x509` is required as authentication mode, then you would need replace the default value of `authmode` within `/terraform/modules/appservice/variables.tf` from "Basic" to "x509" and ensure that the `[cert_issuance.est.auth]` section in `cloud-init.yaml` looks like this:
+After that, you can run `terraform apply` such that the az command which pushes the code to ACR will run again.
+
+## Authenticating to the EST server using certificates
+### Terraform
+The authentication mode is currently set to be `x509`, which means using certificates for authenticating to the EST server.
+
+If you want to use `Basic` authentication with username and password, then you would need to replace the default value of `auth_mode` within `/terraform/variables.tf` from `"x509"` to `"Basic"` and ensure that the `[cert_issuance.est.auth]` section in `cloud-init.yaml` looks like this:
 ```
       [cert_issuance.est.auth]
-      #username = "${EST_USERNAME}"
-      #password = "${EST_PASSWORD}"
+      username = "${EST_USERNAME}"
+      password = "${EST_PASSWORD}"
       
-      identity_cert = "file:///home/${VM_USER_NAME}/${resource_prefix}-cert.pem"
-      identity_pk = "file:///home/${VM_USER_NAME}/${resource_prefix}.key.pem"
+      #identity_cert = "file:///etc/aziot/estauth.pem"
+      #identity_pk = "file:///etc/aziot/estauth.key.pem"
 ```
+
+### Using ForwardedHeaders
+When the user selects the certificate authentication mode for EST server, the code uses [Header Forwarding](https://github.com/machteldbogels/keyvault-ca/blob/master/KeyVaultCA.Web/Startup.cs#L107) to forward the used protocol to the App Service and ensure that the client certificate is negotiated as part of a TLS handshake. More details on the usage of header forwarding can be found [here](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-6.0#forwarded-headers).

@@ -30,15 +30,15 @@ resource "azurerm_linux_web_app" "appservice" {
   location                   = var.location
   resource_group_name        = var.resource_group_name
   service_plan_id            = azurerm_service_plan.appserviceplan.id
-  client_certificate_enabled = var.authmode == "Basic" ? false : true
-  client_certificate_mode    = var.authmode == "Basic" ? "Optional" : "Required"
+  client_certificate_enabled = var.auth_mode == "Basic" ? false : true
+  client_certificate_mode    = var.auth_mode == "Basic" ? "Optional" : "Required"
 
   site_config {
     container_registry_use_managed_identity = true
 
     application_stack {
-      docker_image     = "${var.acr_login_server}/sample/estserver"
-      docker_image_tag = "v2"
+      docker_image     = "${var.acr_login_server}/estserver"
+      docker_image_tag = "latest"
     }
   }
 
@@ -49,9 +49,9 @@ resource "azurerm_linux_web_app" "appservice" {
   app_settings = {
     WEBSITES_ENABLE_APP_SERVICE_STORAGE          = false
     "Keyvault__KeyVaultUrl"                      = var.keyvault_url
-    "EstAuthentication__Auth"                    = var.authmode
+    "EstAuthentication__Auth"                    = var.auth_mode
     "EstAuthentication__EstUsername"             = var.est_username
-    "EstAuthentication__EstPassword"             = var.est_password
+    "EstAuthentication__EstPassword"             = local.est_password
     "KeyVault__IssuingCA"                        = var.issuing_ca
     "KeyVault__CertValidityInDays"               = var.cert_validity_in_days
     "APPINSIGHTS_INSTRUMENTATIONKEY"             = azurerm_application_insights.appinsights.instrumentation_key

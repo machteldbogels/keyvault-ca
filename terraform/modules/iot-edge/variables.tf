@@ -59,3 +59,7 @@ variable "acr_admin_username" {
 variable "acr_name" {
   type = string
 }
+
+variable "auth_mode" {
+  type = string
+}
