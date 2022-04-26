@@ -63,3 +63,7 @@ variable "acr_name" {
 variable "auth_mode" {
   type = string
 }
+
+variable "run_api_facade_null_resource_id" {
+  type = string
+}

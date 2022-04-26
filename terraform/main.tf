@@ -20,7 +20,7 @@ provider "azurerm" {
 
 resource "random_id" "prefix" {
   byte_length = 4
-  prefix      = "s"
+  prefix      = "m"
 }
 
 locals {
@@ -81,24 +81,26 @@ module "iot_hub" {
   keyvault_name       = module.keyvault.keyvault_name
   vnet_name           = module.iot_edge.vnet_name
   vnet_id             = module.iot_edge.vnet_id
+  run_api_facade_null_resource_id = module.keyvault.run_api_facade_null_resource_id
 }
 
 module "iot_edge" {
-  source              = "./modules/iot-edge"
-  resource_prefix     = local.resource_prefix
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = var.location
-  vm_sku              = var.edge_vm_sku
-  dps_scope_id        = module.iot_hub.iot_dps_scope_id
-  edge_device_name    = local.edge_device_name
-  app_hostname        = module.appservice.app_hostname
-  est_username        = module.appservice.est_username
-  est_password        = module.appservice.est_password
-  iot_dps_name        = module.iot_hub.iot_dps_name
-  acr_admin_username  = module.acr.acr_admin_username
-  acr_admin_password  = module.acr.acr_admin_password
-  acr_name            = module.acr.acr_name
-  auth_mode           = var.auth_mode
+  source                          = "./modules/iot-edge"
+  resource_prefix                 = local.resource_prefix
+  resource_group_name             = azurerm_resource_group.rg.name
+  location                        = var.location
+  vm_sku                          = var.edge_vm_sku
+  dps_scope_id                    = module.iot_hub.iot_dps_scope_id
+  edge_device_name                = local.edge_device_name
+  app_hostname                    = module.appservice.app_hostname
+  est_username                    = module.appservice.est_username
+  est_password                    = module.appservice.est_password
+  iot_dps_name                    = module.iot_hub.iot_dps_name
+  acr_admin_username              = module.acr.acr_admin_username
+  acr_admin_password              = module.acr.acr_admin_password
+  acr_name                        = module.acr.acr_name
+  auth_mode                       = var.auth_mode
+  run_api_facade_null_resource_id = module.keyvault.run_api_facade_null_resource_id
 }
 
 resource "null_resource" "disable_public_network" {

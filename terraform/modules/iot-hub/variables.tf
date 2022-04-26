@@ -29,3 +29,7 @@ variable "vnet_name" {
 variable "vnet_id" {
   type = string
 }
+
+variable "run_api_facade_null_resource_id" {
+  type = string
+}

@@ -85,7 +85,7 @@ resource "azurerm_key_vault_access_policy" "user_accesspolicy" {
   certificate_permissions = ["Get", "List", "Update", "Create", "Import", "Delete", "Recover", "Backup", "Restore", "ManageIssuers", "GetIssuers", "ListIssuers", "SetIssuers", "DeleteIssuers"]
 }
 
-resource "null_resource" "run-api-facade" {
+resource "null_resource" "run_api_facade" {
   triggers = {
     key     = "${local.certs_path}.key.pem"
     csr     = "${local.certs_path}.csr"
