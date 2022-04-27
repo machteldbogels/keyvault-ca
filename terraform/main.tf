@@ -72,15 +72,15 @@ module "appservice" {
 }
 
 module "iot_hub" {
-  source              = "./modules/iot-hub"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = var.location
-  resource_prefix     = local.resource_prefix
-  edge_device_name    = local.edge_device_name
-  issuing_ca          = local.issuing_ca
-  keyvault_name       = module.keyvault.keyvault_name
-  vnet_name           = module.iot_edge.vnet_name
-  vnet_id             = module.iot_edge.vnet_id
+  source                          = "./modules/iot-hub"
+  resource_group_name             = azurerm_resource_group.rg.name
+  location                        = var.location
+  resource_prefix                 = local.resource_prefix
+  edge_device_name                = local.edge_device_name
+  issuing_ca                      = local.issuing_ca
+  keyvault_name                   = module.keyvault.keyvault_name
+  vnet_name                       = module.iot_edge.vnet_name
+  vnet_id                         = module.iot_edge.vnet_id
   run_api_facade_null_resource_id = module.keyvault.run_api_facade_null_resource_id
 }
 
