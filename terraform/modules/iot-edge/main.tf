@@ -112,7 +112,7 @@ resource "azurerm_linux_virtual_machine" "iot_edge" {
     "EST_USERNAME"     = var.est_username
     "EST_PASSWORD"     = var.est_password
     "VM_USER_NAME"     = var.vm_username
-    "resource_uid"  = var.resource_uid
+    "resource_uid"     = var.resource_uid
     "DPS_NAME"         = var.iot_dps_name
     "ACR_USERNAME"     = var.acr_admin_username
     "ACR_PASSWORD"     = var.acr_admin_password

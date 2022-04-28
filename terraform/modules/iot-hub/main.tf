@@ -242,7 +242,7 @@ resource "azurerm_network_security_group" "bastion_nsg" {
     access                     = "Allow"
     protocol                   = "*"
     source_port_range          = "*"
-    destination_port_ranges    = ["22","3389"]
+    destination_port_ranges    = ["22", "3389"]
     source_address_prefix      = "*"
     destination_address_prefix = "VirtualNetwork"
   }
