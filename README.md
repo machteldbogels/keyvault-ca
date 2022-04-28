@@ -124,7 +124,7 @@ The Terraform scripts listed under the `terraform` directory can be used to depl
 
 ### VNet integration
 
-The Azure resources deployed through Terraform include VNet integration and private endpoints where possible. The architecture of this setup is shown in the image below. If the user wants to deploy the infrastructure without VNet support, it is possible to remove the `terrafrom/private-endpoints` directory (together with all its subdirectories) and remove/comment out the corresponding module declarations in `terraform/main.tf`.
+The Azure resources deployed through Terraform include VNet integration and private endpoints where possible. The architecture of this setup is shown in the image below. If the user wants to deploy the infrastructure without these resources, it is possible to remove the `terrafrom/private-endpoints` directory (together with all its subdirectories) and remove/comment out the corresponding module declarations in `terraform/main.tf`.
 
 ![Overview](assets/vnet-arch.jpg "VNet Architecture")
 

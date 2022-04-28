@@ -19,7 +19,7 @@ variable "vnet_id" {
 }
 
 variable "iot_hub_id" {
-    type = string
+  type = string
 }
 
 variable "iot_dps_id" {
@@ -31,5 +31,5 @@ variable "dps_rootca_enroll_null_resource_id" {
 }
 
 variable "dps_shared_access_policy_id" {
-    type = string
+  type = string
 }
