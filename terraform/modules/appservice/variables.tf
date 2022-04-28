@@ -44,15 +44,3 @@ variable "keyvault_url" {
 variable "keyvault_name" {
   type = string
 }
-
-variable "vnet_name" {
-  type = string
-}
-
-variable "vnet_id" {
-  type = string
-}
-
-variable "iotedge_subnet_id" {
-  type = string
-}

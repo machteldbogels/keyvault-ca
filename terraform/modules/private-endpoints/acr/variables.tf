@@ -10,18 +10,22 @@ variable "resource_uid" {
   type = string
 }
 
-variable "edge_device_name" {
+variable "vnet_name" {
   type = string
 }
 
-variable "issuing_ca" {
+variable "vnet_id" {
   type = string
 }
 
-variable "keyvault_name" {
+variable "acr_id" {
   type = string
 }
 
-variable "run_api_facade_null_resource_id" {
+variable "push_docker_null_resource_id" {
+  type = string
+}
+
+variable "push_iotedge_null_resource_id" {
   type = string
 }

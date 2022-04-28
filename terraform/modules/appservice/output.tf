@@ -10,6 +10,10 @@ output "est_password" {
   value = local.est_password
 }
 
+output "app_id" {
+  value = azurerm_linux_web_app.appservice.id
+}
+
 output "app_princ_id" {
   value = azurerm_linux_web_app.appservice.identity.0.principal_id
 }
