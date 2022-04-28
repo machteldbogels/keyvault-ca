@@ -1,11 +1,11 @@
 data "azurerm_client_config" "current" {}
 
 locals {
-  certs_path = "${path.root}/../Certs/${var.resource_prefix}"
+  certs_path = "${path.root}/../Certs/${var.resource_uid}"
 }
 
 resource "azurerm_key_vault" "keyvault-ca" {
-  name                        = "kv-${var.resource_prefix}"
+  name                        = "kv-${var.resource_uid}"
   location                    = var.location
   resource_group_name         = var.resource_group_name
   enabled_for_disk_encryption = true
@@ -16,12 +16,23 @@ resource "azurerm_key_vault" "keyvault-ca" {
 }
 
 resource "azurerm_subnet" "kv_subnet" {
-  name                 = "${var.resource_prefix}-kv-subnet"
+  name                 = "kv-subnet"
   resource_group_name  = var.resource_group_name
   virtual_network_name = var.vnet_name
   address_prefixes     = ["10.0.7.0/24"]
 
   enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_network_security_group" "kv_nsg" {
+  name                = "nsg-kv-${var.resource_uid}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+}
+
+resource "azurerm_subnet_network_security_group_association" "kv_subnet_assoc" {
+  subnet_id                 = azurerm_subnet.kv_subnet.id
+  network_security_group_id = azurerm_network_security_group.kv_nsg.id
 }
 
 resource "azurerm_private_dns_zone" "kv_dns_zone" {
@@ -45,7 +56,7 @@ resource "azurerm_private_dns_a_record" "kv_dns_a_record" {
 }
 
 resource "azurerm_private_endpoint" "kv_private_endpoint" {
-  name                = "${var.resource_prefix}-kv-private-endpoint"
+  name                = "${var.resource_uid}-kv-private-endpoint"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = azurerm_subnet.kv_subnet.id
@@ -58,7 +69,7 @@ resource "azurerm_private_endpoint" "kv_private_endpoint" {
   }
 
   private_dns_zone_group {
-    name                 = "${var.resource_prefix}-kv-dns-zone-group"
+    name                 = "${var.resource_uid}-kv-dns-zone-group"
     private_dns_zone_ids = [azurerm_private_dns_zone.kv_dns_zone.id]
   }
 

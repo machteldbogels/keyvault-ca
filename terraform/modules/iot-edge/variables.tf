@@ -1,4 +1,4 @@
-variable "resource_prefix" {
+variable "resource_uid" {
   type = string
 }
 

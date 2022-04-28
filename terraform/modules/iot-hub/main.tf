@@ -1,5 +1,5 @@
 resource "azurerm_iothub" "iothub" {
-  name                          = "iot-${var.resource_prefix}"
+  name                          = "iot-${var.resource_uid}"
   resource_group_name           = var.resource_group_name
   location                      = var.location
   public_network_access_enabled = false
@@ -32,7 +32,7 @@ resource "azurerm_iothub_shared_access_policy" "iot_hub_dps_shared_access_policy
 }
 
 resource "azurerm_iothub_dps" "iot_dps" {
-  name                          = "provs-${var.resource_prefix}"
+  name                          = "provs-${var.resource_uid}"
   resource_group_name           = var.resource_group_name
   location                      = var.location
   public_network_access_enabled = true
@@ -76,7 +76,7 @@ resource "null_resource" "dps_rootca_enroll" {
         echo "Cert ${var.issuing_ca} already exists."
       fi
 
-      az iot dps enrollment-group create -g ${var.resource_group_name} --dps-name ${azurerm_iothub_dps.iot_dps.name} --eid ${var.resource_prefix}-enrollmentgroup --ee true --cn ${var.issuing_ca}
+      az iot dps enrollment-group create -g ${var.resource_group_name} --dps-name ${azurerm_iothub_dps.iot_dps.name} --eid ${var.resource_uid}-enrollmentgroup --ee true --cn ${var.issuing_ca}
     EOF
   }
 
@@ -103,6 +103,17 @@ resource "azurerm_subnet" "iot_subnet" {
   enforce_private_link_endpoint_network_policies = true
 }
 
+resource "azurerm_network_security_group" "iot_nsg" {
+  name                = "nsg-iot-${var.resource_uid}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+}
+
+resource "azurerm_subnet_network_security_group_association" "iot_subnet_assoc" {
+  subnet_id                 = azurerm_subnet.iot_subnet.id
+  network_security_group_id = azurerm_network_security_group.iot_nsg.id
+}
+
 # IOT HUB
 resource "azurerm_private_dns_zone" "iothub_dns_zone" {
   name                = "privatelink.azure-devices.net"
@@ -125,7 +136,7 @@ resource "azurerm_private_dns_a_record" "iothub_dns_a_record" {
 }
 
 resource "azurerm_private_endpoint" "iothub_private_endpoint" {
-  name                = "priv-endpoint-iothub-${var.resource_prefix}"
+  name                = "priv-endpoint-iothub-${var.resource_uid}"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = azurerm_subnet.iot_subnet.id
@@ -138,7 +149,7 @@ resource "azurerm_private_endpoint" "iothub_private_endpoint" {
   }
 
   private_dns_zone_group {
-    name                 = "iothub-dns-zone-group-${var.resource_prefix}"
+    name                 = "iothub-dns-zone-group-${var.resource_uid}"
     private_dns_zone_ids = [azurerm_private_dns_zone.iothub_dns_zone.id]
   }
 
@@ -167,7 +178,7 @@ resource "azurerm_private_dns_a_record" "dps_dns_a_record" {
 }
 
 resource "azurerm_private_endpoint" "dps_private_endpoint" {
-  name                = "priv-endpoint-dps-${var.resource_prefix}"
+  name                = "priv-endpoint-dps-${var.resource_uid}"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = azurerm_subnet.iot_subnet.id
@@ -180,7 +191,7 @@ resource "azurerm_private_endpoint" "dps_private_endpoint" {
   }
 
   private_dns_zone_group {
-    name                 = "dps-dns-zone-group${var.resource_prefix}"
+    name                 = "dps-dns-zone-group${var.resource_uid}"
     private_dns_zone_ids = [azurerm_private_dns_zone.dps_dns_zone.id]
   }
 
@@ -195,8 +206,67 @@ resource "azurerm_subnet" "bastion_subnet" {
   address_prefixes     = ["10.0.2.0/26"]
 }
 
+resource "azurerm_network_security_group" "bastion_nsg" {
+  name                = "nsg-bastion-${var.resource_uid}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+
+  security_rule {
+    name                       = "AllowGatewayManager"
+    priority                   = 2702
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "GatewayManager"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "AllowHttpsInBound"
+    priority                   = 2703
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "AllowSshRdpOutbound"
+    priority                   = 100
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_ranges    = ["22","3389"]
+    source_address_prefix      = "*"
+    destination_address_prefix = "VirtualNetwork"
+  }
+
+  security_rule {
+    name                       = "AllowAzureCloudOutbound"
+    priority                   = 110
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "AzureCloud"
+  }
+}
+
+resource "azurerm_subnet_network_security_group_association" "bastion_subnet_assoc" {
+  subnet_id                 = azurerm_subnet.bastion_subnet.id
+  network_security_group_id = azurerm_network_security_group.bastion_nsg.id
+}
+
 resource "azurerm_public_ip" "public_ip" {
-  name                = "bastion-ip-${var.resource_prefix}"
+  name                = "bastion-ip-${var.resource_uid}"
   location            = var.location
   resource_group_name = var.resource_group_name
   allocation_method   = "Static"
@@ -204,7 +274,7 @@ resource "azurerm_public_ip" "public_ip" {
 }
 
 resource "azurerm_bastion_host" "bastion" {
-  name                = "bastion-host-${var.resource_prefix}"
+  name                = "bastion-host-${var.resource_uid}"
   location            = var.location
   resource_group_name = var.resource_group_name
 

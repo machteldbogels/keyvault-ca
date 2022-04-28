@@ -18,19 +18,19 @@ provider "azurerm" {
   }
 }
 
-resource "random_id" "prefix" {
+resource "random_id" "resource_uid" {
   byte_length = 4
-  prefix      = "m"
+  prefix      = "d"
 }
 
 locals {
-  resource_prefix  = var.resource_prefix == "" ? lower(random_id.prefix.hex) : var.resource_prefix
+  resource_uid  = var.resource_uid == "" ? lower(random_id.resource_uid.hex) : var.resource_uid
   issuing_ca       = "ContosoRootCA"
-  edge_device_name = "${local.resource_prefix}-edge-device"
+  edge_device_name = "${local.resource_uid}-edge-device"
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-${local.resource_prefix}-keyvault-ca"
+  name     = "rg-${local.resource_uid}-keyvault-ca"
   location = var.location
 }
 
@@ -38,7 +38,7 @@ module "keyvault" {
   source              = "./modules/keyvault"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
-  resource_prefix     = local.resource_prefix
+  resource_uid     = local.resource_uid
   app_princ_id        = module.appservice.app_princ_id
   vnet_name           = module.iot_edge.vnet_name
   vnet_id             = module.iot_edge.vnet_id
@@ -49,7 +49,7 @@ module "acr" {
   source                             = "./modules/acr"
   resource_group_name                = azurerm_resource_group.rg.name
   location                           = var.location
-  resource_prefix                    = local.resource_prefix
+  resource_uid                    = local.resource_uid
   vnet_name                          = module.iot_edge.vnet_name
   vnet_id                            = module.iot_edge.vnet_id
   app_princ_id                       = module.appservice.app_princ_id
@@ -60,7 +60,7 @@ module "appservice" {
   source              = "./modules/appservice"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
-  resource_prefix     = local.resource_prefix
+  resource_uid     = local.resource_uid
   issuing_ca          = local.issuing_ca
   keyvault_url        = module.keyvault.keyvault_url
   keyvault_name       = module.keyvault.keyvault_name
@@ -75,7 +75,7 @@ module "iot_hub" {
   source                          = "./modules/iot-hub"
   resource_group_name             = azurerm_resource_group.rg.name
   location                        = var.location
-  resource_prefix                 = local.resource_prefix
+  resource_uid                 = local.resource_uid
   edge_device_name                = local.edge_device_name
   issuing_ca                      = local.issuing_ca
   keyvault_name                   = module.keyvault.keyvault_name
@@ -86,7 +86,7 @@ module "iot_hub" {
 
 module "iot_edge" {
   source                          = "./modules/iot-edge"
-  resource_prefix                 = local.resource_prefix
+  resource_uid                 = local.resource_uid
   resource_group_name             = azurerm_resource_group.rg.name
   location                        = var.location
   vm_sku                          = var.edge_vm_sku

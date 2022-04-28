@@ -1,5 +1,5 @@
 locals {
-  dns_label_prefix = "${var.resource_prefix}-iot-edge"
+  dns_label_prefix = "${var.resource_uid}-iot-edge"
 }
 
 locals {
@@ -7,12 +7,12 @@ locals {
 }
 
 data "local_file" "est_auth_cert" {
-  filename   = "${path.root}/../Certs/${var.resource_prefix}-cert.pem"
+  filename   = "${path.root}/../Certs/${var.resource_uid}-cert.pem"
   depends_on = [var.run_api_facade_null_resource_id]
 }
 
 data "local_file" "est_auth_key" {
-  filename   = "${path.root}/../Certs/${var.resource_prefix}.key.pem"
+  filename   = "${path.root}/../Certs/${var.resource_uid}.key.pem"
   depends_on = [var.run_api_facade_null_resource_id]
 }
 
@@ -31,7 +31,7 @@ resource "azurerm_public_ip" "iot_edge" {
 }
 
 resource "azurerm_network_security_group" "iot_edge" {
-  name                = "nsg-${local.dns_label_prefix}"
+  name                = "nsg-iotedge-${var.resource_uid}"
   resource_group_name = var.resource_group_name
   location            = var.location
 
@@ -61,7 +61,7 @@ resource "azurerm_network_security_group" "iot_edge" {
 }
 
 resource "azurerm_virtual_network" "iot_edge" {
-  name                = "vnet-${local.dns_label_prefix}"
+  name                = "vnet-${var.resource_uid}"
   location            = var.location
   resource_group_name = var.resource_group_name
   address_space       = ["10.0.0.0/16"]
@@ -87,7 +87,7 @@ resource "azurerm_network_interface" "iot_edge" {
   }
 }
 
-resource "azurerm_subnet_network_security_group_association" "iotedge_vnet_assoc" {
+resource "azurerm_subnet_network_security_group_association" "iotedge_subnet_assoc" {
   subnet_id                 = azurerm_subnet.iotedge_subnet.id
   network_security_group_id = azurerm_network_security_group.iot_edge.id
 }
@@ -112,7 +112,7 @@ resource "azurerm_linux_virtual_machine" "iot_edge" {
     "EST_USERNAME"     = var.est_username
     "EST_PASSWORD"     = var.est_password
     "VM_USER_NAME"     = var.vm_username
-    "RESOURCE_PREFIX"  = var.resource_prefix
+    "resource_uid"  = var.resource_uid
     "DPS_NAME"         = var.iot_dps_name
     "ACR_USERNAME"     = var.acr_admin_username
     "ACR_PASSWORD"     = var.acr_admin_password

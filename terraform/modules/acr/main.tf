@@ -1,5 +1,5 @@
 resource "azurerm_container_registry" "acr" {
-  name                          = "cr${var.resource_prefix}"
+  name                          = "cr${var.resource_uid}"
   resource_group_name           = var.resource_group_name
   location                      = var.location
   sku                           = "Premium" # Needs to be premium in order to disable public network access
@@ -20,6 +20,17 @@ resource "azurerm_subnet" "acr_subnet" {
   address_prefixes     = ["10.0.4.0/24"]
 
   enforce_private_link_endpoint_network_policies = true
+}
+
+resource "azurerm_network_security_group" "acr_nsg" {
+  name                = "nsg-acr-${var.resource_uid}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+}
+
+resource "azurerm_subnet_network_security_group_association" "acr_subnet_assoc" {
+  subnet_id                 = azurerm_subnet.acr_subnet.id
+  network_security_group_id = azurerm_network_security_group.acr_nsg.id
 }
 
 resource "azurerm_private_dns_zone" "acr_dns_zone" {
@@ -43,7 +54,7 @@ resource "azurerm_private_dns_a_record" "acr_dns_a_record" {
 }
 
 resource "azurerm_private_endpoint" "acr_private_endpoint" {
-  name                = "priv-endpoint-acr-${var.resource_prefix}"
+  name                = "priv-endpoint-acr-${var.resource_uid}"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = azurerm_subnet.acr_subnet.id
@@ -56,7 +67,7 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
   }
 
   private_dns_zone_group {
-    name                 = "dns-zone-group-acr-${var.resource_prefix}"
+    name                 = "dns-zone-group-acr-${var.resource_uid}"
     private_dns_zone_ids = [azurerm_private_dns_zone.acr_dns_zone.id]
   }
 
@@ -64,17 +75,20 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
 }
 
 resource "null_resource" "push-docker" {
-  triggers = {
-    always_run = uuid()
-  }
+  # triggers = {
+  #   always_run = uuid()
+  # }
 
   provisioner "local-exec" {
     command = "az acr build -r ${azurerm_container_registry.acr.name} -t estserver:latest ../ -f ../KeyVaultCA.Web/Dockerfile"
   }
+  depends_on = [azurerm_container_registry.acr, var.dps_rootca_enroll_null_resource_id]
+}
 
+resource "null_resource" "push-iotedge-agent" {
   provisioner "local-exec" {
     command = "az acr import --name ${azurerm_container_registry.acr.name} --source mcr.microsoft.com/azureiotedge-agent:1.2 --image azureiotedge-agent:1.2"
   }
 
-  depends_on = [azurerm_container_registry.acr, var.dps_rootca_enroll_null_resource_id]
+  depends_on = [azurerm_container_registry.acr]
 }

@@ -11,14 +11,14 @@ locals {
 }
 
 resource "azurerm_application_insights" "appinsights" {
-  name                = "appi-${var.resource_prefix}"
+  name                = "appi-${var.resource_uid}"
   location            = var.location
   resource_group_name = var.resource_group_name
   application_type    = "web"
 }
 
 resource "azurerm_service_plan" "appserviceplan" {
-  name                = "plan-${var.resource_prefix}"
+  name                = "plan-${var.resource_uid}"
   location            = var.location
   resource_group_name = var.resource_group_name
   os_type             = "Linux"
@@ -26,7 +26,7 @@ resource "azurerm_service_plan" "appserviceplan" {
 }
 
 resource "azurerm_linux_web_app" "appservice" {
-  name                       = "app-${var.resource_prefix}"
+  name                       = "app-${var.resource_uid}"
   location                   = var.location
   resource_group_name        = var.resource_group_name
   service_plan_id            = azurerm_service_plan.appserviceplan.id
@@ -70,6 +70,17 @@ resource "azurerm_subnet" "app_subnet" {
   enforce_private_link_endpoint_network_policies = true
 }
 
+resource "azurerm_network_security_group" "app_nsg" {
+  name                = "nsg-app-${var.resource_uid}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+}
+
+resource "azurerm_subnet_network_security_group_association" "app_subnet_assoc" {
+  subnet_id                 = azurerm_subnet.app_subnet.id
+  network_security_group_id = azurerm_network_security_group.app_nsg.id
+}
+
 resource "azurerm_subnet" "app_vnet_integration_subnet" {
   name                 = "app-vnet-integration-subnet"
   resource_group_name  = var.resource_group_name
@@ -107,7 +118,7 @@ resource "azurerm_private_dns_a_record" "app_dns_a_record" {
 }
 
 resource "azurerm_private_endpoint" "app_private_endpoint" {
-  name                = "priv-endpoint-app-${var.resource_prefix}"
+  name                = "priv-endpoint-app-${var.resource_uid}"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = azurerm_subnet.app_subnet.id
@@ -120,7 +131,7 @@ resource "azurerm_private_endpoint" "app_private_endpoint" {
   }
 
   private_dns_zone_group {
-    name                 = "app-dns-zone-group-${var.resource_prefix}"
+    name                 = "app-dns-zone-group-${var.resource_uid}"
     private_dns_zone_ids = [azurerm_private_dns_zone.app_dns_zone.id]
   }
 
