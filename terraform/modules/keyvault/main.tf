@@ -124,7 +124,7 @@ resource "null_resource" "run_api_facade" {
 
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    working_dir = "${path.root}/../KeyvaultCA"
+    working_dir = "${path.root}/../Certs"
     when        = destroy
     command     = "rm -f ${self.triggers.key} ${self.triggers.csr} ${self.triggers.csr_der} ${self.triggers.cert_raw} ${self.triggers.cert_crt} ${self.triggers.cert_pem}"
   }
