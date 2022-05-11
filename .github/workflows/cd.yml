@@ -86,12 +86,15 @@ jobs:
           az iot hub update --name $IotHubName --set properties.publicNetworkAccess=Enabled
 
       - name: Run E2E Test
-        run: dotnet test -e IotHubConnectionString=$IotHubConnectionString -e EdgeDeviceName=$EdgeDeviceName
+        run: dotnet test -e IotHubConnectionString=$IotHubConnectionString -e EdgeDeviceName=$EdgeDeviceName --logger "trx;LogFileName=test-results.trx"
 
       - name: Test Reporter
         uses: dorny/test-reporter@v1.5.0
-        with: dotnet-trx
-        reporter: all
+        with: 
+          artifact: test-results
+          name: E2E Tests
+          path: '*.trx'  
+          reporter: dotnet-trx
         # Relative path under $GITHUB_WORKSPACE where the repository was checked out
         #working-directory: # optional
         # Allows you to generate only the summary.
