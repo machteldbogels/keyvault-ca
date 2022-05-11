@@ -85,5 +85,16 @@ jobs:
       - name: Run E2E Test
         run: dotnet test -e IotHubConnectionString=$IotHubConnectionString -e EdgeDeviceName=$EdgeDeviceName
 
+      - name: Test Reporter
+        uses: dorny/test-reporter@v1.5.0
+        with: dotnet-trx
+        reporter: all
+        # Relative path under $GITHUB_WORKSPACE where the repository was checked out
+        #working-directory: # optional
+        # Allows you to generate only the summary.
+        #only-summary: # optional, default is false
+        # GitHub Access Token
+        #token: # optional, default is ${{ github.token }}
+
       - name: Disable public network access for IoT Hub
         run: az iot hub update --name $IotHubName --set properties.publicNetworkAccess=Disabled
