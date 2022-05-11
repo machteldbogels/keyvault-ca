@@ -93,7 +93,7 @@ jobs:
         with: 
           artifact: test-results
           name: E2E Tests
-          path: '*.trx'  
+          path: '/home/runner/work/keyvault-ca/keyvault-ca/E2ETests/TestResults/test-results.trx'  
           reporter: dotnet-trx
         # Relative path under $GITHUB_WORKSPACE where the repository was checked out
         #working-directory: # optional
